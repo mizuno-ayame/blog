@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Schema;
 class CreateUsersTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Run the migrations.マイグレーション実行する
      *
      * @return void
      */
-    public function up()
+    public function up() //作成する　
     {
         Schema::create('users', function (Blueprint $table) {
             $table->bigIncrements('id');
@@ -25,11 +25,11 @@ class CreateUsersTable extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations.＝元に戻す　＝なかったことにする
      *
      * @return void
      */
-    public function down()
+    public function down() //削除する
     {
         Schema::dropIfExists('users');
     }
