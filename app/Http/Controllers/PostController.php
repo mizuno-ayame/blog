@@ -41,7 +41,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return view('post.create');
     }
 
     /**
@@ -52,7 +52,43 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            DB::beginTransaction();
+        // DB::table('posts')->insert([
+        //         'content' => $request->content,
+        //         'user_id' => $request->user_id
+        // ]);
+
+        //Eloquent
+        $post =new Post;//モデルからインスタント生成する
+        $post->content = $request->content;
+        $post->user_id = $request->user_id;
+        $post->save();
+
+        //Eloquent別パターン
+        //モデルファイルの中に、fillableを設定しなければならない
+        Post::create([
+                    'content' => $request->content,
+                    'user_id' => $request->user_id
+        ]);
+
+        //クロージャーを活用したトランザクション処理 use宣言忘れがち
+        DB::transaction(function() use($request){
+            Post::create([
+                'content' => $request->content,
+                'user_id' => $request->user_id
+    ]);
+        });
+
+        DB::commit();
+        } catch(\Exception $e) {
+            DB::rollBack();
+            report($e); //ログファイルにエラーの内容を書き出す
+        }
+
+
+        return redirect('/create');
+
     }
 
     /**
