@@ -1,10 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\DB;
+
 
 use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
@@ -108,9 +110,12 @@ class PostController extends Controller
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function edit(Post $post)
+    public function edit($id)
     {
-        //
+        //return view('post.edit', ['post' => $post]);
+
+        $post = Post::findOrFail($id);
+        return view('post.edit', ['post' => $post]);
     }
 
     /**
@@ -120,9 +125,44 @@ class PostController extends Controller
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Post $post)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            DB::beginTransaction();
+            DB::table('posts')
+            ->where('id', $id)
+            ->update([
+                    'content' => $request->content,
+                    'user_id' => $request->user_id
+                ]);
+
+            // Eloquent
+            $post = Post::findOrFail($id);
+            $post->content = $request->content;
+            $post->user_id = $request->user_id;
+            $post->save();
+
+            // Eloquent別パターン
+            Post::where('id', $id)->update([
+                'content' => $request->content,
+                'user_id' => $request->user_id
+            ]);
+
+             //クロージャーを活用したトランザクション処理 use宣言忘れがち
+            DB::transaction(function() use($request, $id){//useの書き忘れが多い
+                Post::where('id', $id)->update([
+                    'content' => $request->content,
+                    'user_id' => $request->user_id
+            ]);
+        });
+
+            DB::commit();
+
+        } catch(\Exception $e) {
+            DB::rollBack();
+            report($e);
+            Log::info('更新時のエラー' . $e);//メッセージを自分で決めらるから重宝する　Logファイル見てidでエラー内容が確認できる
+        }
     }
 
     /**
