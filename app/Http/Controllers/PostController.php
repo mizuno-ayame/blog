@@ -30,7 +30,7 @@ class PostController extends Controller
         $posts = Post::all();
         $getpost = Post::where('user_id', '1')->get();
         $firstpost = Post::where('user_id', '1')->first();
-        dd($getpost, $firstpost);
+        //dd($getpost, $firstpost);
 
 
         //return view('post.index', ['posts' => $posts]);
@@ -58,7 +58,8 @@ class PostController extends Controller
             DB::beginTransaction();
         // DB::table('posts')->insert([
         //         'content' => $request->content,
-        //         'user_id' => $request->user_id
+        //         'user_id' => $request->user_id,
+        //         'create_at' => Carbon::now() insertの場合はcreate_atが必要
         // ]);
 
         //Eloquent
@@ -133,7 +134,8 @@ class PostController extends Controller
             ->where('id', $id)
             ->update([
                     'content' => $request->content,
-                    'user_id' => $request->user_id
+                    'user_id' => $request->user_id,
+                    'updated_at' => Carbon::now()
                 ]);
 
             // Eloquent
@@ -171,8 +173,16 @@ class PostController extends Controller
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Post $post)
+    public function destroy($id)
     {
-        //
+        //クエリビルダ
+        DB::table('post')->where('id', $id)->delete();
+
+        //Eloquent 3パターン存在
+        Post::finf($id)->delete();
+        //もしくは
+        Post::destroy($id);
+        //さらに
+        Post::where('id', $id)->delete();
     }
 }
